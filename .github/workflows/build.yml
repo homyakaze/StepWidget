@@ -15,16 +15,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Find project
+      - name: Unpack and find project
         id: find
         run: |
-          find . -not -path './.git/*' -not -path './.git' | head -60
-          F=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)
-          if [ -z "$F" ]; then
-            echo "settings.gradle.kts not found"
-            exit 1
+          if [ -f Shagi-project.zip ]; then
+            rm -rf project
+            unzip -oq Shagi-project.zip -d project
+            DIR=project
+            if [ ! -f project/settings.gradle.kts ]; then
+              F=$(find project -name settings.gradle.kts | head -1)
+              DIR=$(dirname "$F")
+            fi
+          else
+            F=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)
+            DIR=$(dirname "$F")
           fi
-          echo "dir=$(dirname "$F")" >> "$GITHUB_OUTPUT"
+          echo "Project dir: $DIR"
+          ls -R "$DIR" | head -50
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v4
         with:
